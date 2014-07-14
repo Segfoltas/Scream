@@ -22,6 +22,7 @@ public class PebbleInterface {
 
 	public PebbleInterface(final Context context, final WearableCallbacks callbacks, final UUID uuid, final long timeout) {
 		this.callbacks = callbacks;
+		this.context = context;
 		this.handler = new Handler();
 		this.timeout = timeout;
 		this.uuid = uuid;
