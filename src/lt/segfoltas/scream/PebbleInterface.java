@@ -16,24 +16,25 @@ public class PebbleInterface {
 	private WearableCallbacks callbacks;
 	private Handler handler;
 	private long timeout;
+	private PebbleDataReceiver receiver;
+	private Context context;
+	private UUID uuid;
 
 	public PebbleInterface(final Context context, final WearableCallbacks callbacks, final UUID uuid, final long timeout) {
 		this.callbacks = callbacks;
 		this.handler = new Handler();
 		this.timeout = timeout;
+		this.uuid = uuid;
+		connect();
+	}
+	
+	public void connect(){
 
-		if (PebbleKit.isWatchConnected(context)) {
-			callbacks.onDeviceConnected();
-			updateTimer();
-		} else {
-			PebbleKit.registerPebbleConnectedReceiver(context,
-					connectedReceiver);
-		}
+		PebbleKit.registerPebbleConnectedReceiver(context, connectedReceiver);
 
-		PebbleKit.registerPebbleDisconnectedReceiver(context,
-				disconnectedReceiver);
+		PebbleKit.registerPebbleDisconnectedReceiver(context, disconnectedReceiver);
 
-		final PebbleDataReceiver receiver = new PebbleDataReceiver(uuid) {
+		receiver = new PebbleDataReceiver(uuid) {
 
 			@Override
 			public void receiveData(Context context, int transactionId, PebbleDictionary data) {
@@ -44,6 +45,13 @@ public class PebbleInterface {
 		};
 
 		PebbleKit.registerReceivedDataHandler(context, receiver);
+	}
+	
+	public void disconnect(){
+		context.unregisterReceiver(receiver);
+		context.unregisterReceiver(connectedReceiver);
+		context.unregisterReceiver(disconnectedReceiver);
+		handler.removeCallbacks(timer);
 	}
 
 	private class ShakeRunnable implements Runnable {

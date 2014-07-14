@@ -19,18 +19,18 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity{
 	private static final UUID PEBBLE_APP_UUID = UUID.fromString("7f84367c-1f86-4491-a6bb-cdedbb55baa1");
 	private static final int THRESHHOLD = 5000;
 	
 	private Handler handler = new Handler();
 	private TextView info;
-	private boolean showing = false;
 	private int silenceCount = 0;
 	private MediaPlayer player;
 	private int userVolume;
 	private int maxVolume;
 	private AudioManager manager;
+	private PebbleInterface pebble;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,44 +51,42 @@ public class MainActivity extends Activity {
 		manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		userVolume = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
 		maxVolume = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-		PebbleKit.registerReceivedDataHandler(this, receiver);
-	}
-	
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
 	}
 	
 	@Override
 	protected void onStart() {
 		super.onStart();
-		showing = true;
+		pebble = new PebbleInterface(this, new Callbacks(){
+
+			@Override
+			public void onDeviceConnected() {
+				//disconnect other devices
+			}
+			
+		}, PEBBLE_APP_UUID, 2000);
 	}
 	
 	@Override
 	protected void onStop() {
 		super.onStop();
-		showing = false;
-	}	
+		pebble.disconnect();
+		pebble = null;
+	}
 	
-	private PebbleDataReceiver receiver = new PebbleDataReceiver(PEBBLE_APP_UUID) {
+	private abstract class Callbacks implements WearableCallbacks{
 		
-		@Override
-		public void receiveData(Context context, int transactionId,
-				PebbleDictionary data) {
-			if(showing){
-				final long shake = data.getUnsignedInteger(1);
-				handler.post(new Runnable() {
-					
-					@Override
-					public void run() {
-						update((int) shake);
-					}
-				});
-			}
-			PebbleKit.sendAckToPebble(context, transactionId);
+		public void onDeviceDisconnected(){
+			stop();
 		}
-	};
+		
+		public void onTimeout(){
+			stop();
+		}
+		
+		public void onShakeReceived(int shake){
+			update(shake);
+		}
+	}
 	
 	private void update(int shake){
 		boolean scream;
@@ -97,7 +95,7 @@ public class MainActivity extends Activity {
 			scream = true;
 			
 		}else{
-			silenceCount ++;
+			silenceCount++;
 			scream = silenceCount < 2;
 			if(silenceCount > 2)
 				silenceCount = 2;
