@@ -30,6 +30,8 @@ public class PebbleInterface {
 	}
 	
 	public void connect(){
+		if(PebbleKit.isWatchConnected(context))
+			connectedReceiver.onReceive(null, null);
 
 		PebbleKit.registerPebbleConnectedReceiver(context, connectedReceiver);
 
@@ -40,6 +42,7 @@ public class PebbleInterface {
 			@Override
 			public void receiveData(Context context, int transactionId, PebbleDictionary data) {
 				final long shake = data.getUnsignedInteger(1);
+				updateTimer();
 				handler.post(new ShakeRunnable((int) shake));
 				PebbleKit.sendAckToPebble(context, transactionId);
 			}

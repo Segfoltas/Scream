@@ -3,27 +3,18 @@ package lt.segfoltas.scream;
 import java.io.IOException;
 import java.util.UUID;
 
-import com.getpebble.android.kit.PebbleKit;
-import com.getpebble.android.kit.PebbleKit.PebbleDataReceiver;
-import com.getpebble.android.kit.util.PebbleDictionary;
-
-import android.R.color;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Handler;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.TextView;
 
 public class MainActivity extends Activity{
 	private static final UUID PEBBLE_APP_UUID = UUID.fromString("7f84367c-1f86-4491-a6bb-cdedbb55baa1");
 	private static final int THRESHHOLD = 5000;
 	
-	private Handler handler = new Handler();
 	private TextView info;
 	private int silenceCount = 0;
 	private MediaPlayer player;
@@ -69,6 +60,7 @@ public class MainActivity extends Activity{
 	@Override
 	protected void onStop() {
 		super.onStop();
+		stop();
 		pebble.disconnect();
 		pebble = null;
 	}
