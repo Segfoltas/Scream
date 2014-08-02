@@ -17,6 +17,9 @@ import android.util.Log;
 
 public class ScreamService extends Service {
 	
+	public static final String INTENT = "lt.segfoltas.scream.indicatorintent";
+	public static final String VALUE = "screaming";
+	
 	private static final UUID PEBBLE_APP_UUID = UUID.fromString("7f84367c-1f86-4491-a6bb-cdedbb55baa1");
 	private static final int THRESHHOLD = 3000;
 	
@@ -117,12 +120,14 @@ public class ScreamService extends Service {
 	
 	private void start(){
 		Log.d("ScreamService", "started");
+		sendBroadcast(getScreamIntent(true));
 		player.start();
 		manager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, AudioManager.FLAG_PLAY_SOUND);
 	}
 	
 	private void stop(){
 		Log.d("ScreamService", "stopped");
+		sendBroadcast(getScreamIntent(false));
 		player.stop();
 		manager.setStreamVolume(AudioManager.STREAM_MUSIC, userVolume, AudioManager.FLAG_PLAY_SOUND);
 		try {
@@ -130,6 +135,12 @@ public class ScreamService extends Service {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private Intent getScreamIntent(boolean screaming){
+		Intent intent = new Intent(INTENT);
+		intent.putExtra(VALUE, screaming);
+		return intent;
 	}
 
 	@Override

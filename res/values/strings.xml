@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Scream</string>
+    <string name="app_name">Shake to scream</string>
     <string name="hello_world">Hello world!</string>
+    <string name="message_service_on">Shake to scream</string>
+    <string name="message_service_off">Shake to not scream</string>
 
 </resources>
