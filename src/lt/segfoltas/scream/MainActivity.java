@@ -7,6 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.CompoundButton;
+import android.widget.ToggleButton;
 
 public class MainActivity extends Activity{
 
@@ -14,6 +17,9 @@ public class MainActivity extends Activity{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		ToggleButton button = (ToggleButton) findViewById(R.id.service_switch);
+		button.setOnCheckedChangeListener(listener);
+		button.setChecked(isServiceRunning(ScreamService.class));
 		startService(new Intent(this, ScreamService.class));
 	}
 	
@@ -32,6 +38,17 @@ public class MainActivity extends Activity{
 		super.onDestroy();
 		Log.d("MainActivity", "destroyed");
 	}
+	
+	private OnCheckedChangeListener listener = new OnCheckedChangeListener() {
+		
+		@Override
+		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+			if(isChecked)
+				startService(new Intent(MainActivity.this, ScreamService.class));
+			else
+				stopService(new Intent(MainActivity.this, ScreamService.class));
+		}
+	};
 	
 	private boolean isServiceRunning(Class<?> serviceClass) {
 	    ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
