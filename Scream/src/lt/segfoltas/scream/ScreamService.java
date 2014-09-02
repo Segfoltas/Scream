@@ -11,7 +11,6 @@ import lt.segfoltas.wearableinterface.WearableCallbacks.TimeoutListener;
 import lt.segfoltas.wearableinterface.PebbleProcessor;
 import lt.segfoltas.wearableinterface.WearableIds;
 import lt.segfoltas.wearableinterface.WearableInterface;
-
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -70,6 +69,7 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 				return data.getUnsignedInteger(1).intValue();
 			}
 		});
+		wearable.connect();
 	}
 	
 	private Notification getNotification(){
