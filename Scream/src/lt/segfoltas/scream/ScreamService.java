@@ -3,6 +3,15 @@ package lt.segfoltas.scream;
 import java.io.IOException;
 import java.util.UUID;
 
+import com.getpebble.android.kit.util.PebbleDictionary;
+
+import lt.segfoltas.wearableinterface.WearableCallbacks.DataReceivedListener;
+import lt.segfoltas.wearableinterface.WearableCallbacks.DisconnectedListener;
+import lt.segfoltas.wearableinterface.WearableCallbacks.TimeoutListener;
+import lt.segfoltas.wearableinterface.PebbleProcessor;
+import lt.segfoltas.wearableinterface.WearableIds;
+import lt.segfoltas.wearableinterface.WearableInterface;
+
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -15,20 +24,20 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-public class ScreamService extends Service {
+public class ScreamService extends Service implements DisconnectedListener, TimeoutListener, DataReceivedListener<Integer>{
 	
 	public static final String INTENT = "lt.segfoltas.scream.indicatorintent";
 	public static final String VALUE = "screaming";
 	
-	private static final UUID PEBBLE_APP_UUID = UUID.fromString("7f84367c-1f86-4491-a6bb-cdedbb55baa1");
 	private static final int THRESHHOLD = 3000;
+	private static final WearableIds IDS = new WearableIds(UUID.fromString("7f84367c-1f86-4491-a6bb-cdedbb55baa1"));
 	
 	private int silenceCount = 0;
 	private MediaPlayer player;
 	private int userVolume;
 	private int maxVolume;
 	private AudioManager manager;
-	private PebbleInterface pebble;
+	private WearableInterface<Integer> wearable;
 
 	@Override
 	public void onCreate() {
@@ -50,14 +59,17 @@ public class ScreamService extends Service {
 		userVolume = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
 		maxVolume = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 		
-		pebble = new PebbleInterface(getApplicationContext(), new Callbacks(){
-
-			@Override
-			public void onDeviceConnected() {
-				//disconnect other devices
-			}
+		wearable = new WearableInterface<Integer>(getApplicationContext(), IDS);
+		wearable.setTimeoutListener(this, 2000);
+		wearable.setDisconnectedListener(this);
+		wearable.setReceivedListener(this);
+		wearable.setProcessor(new PebbleProcessor<Integer>() {
 			
-		}, PEBBLE_APP_UUID, 2000);
+			@Override
+			public Integer decode(PebbleDictionary data) {
+				return data.getUnsignedInteger(1).intValue();
+			}
+		});
 	}
 	
 	private Notification getNotification(){
@@ -75,26 +87,26 @@ public class ScreamService extends Service {
 		super.onDestroy();
 		Log.d("ScreamService", "destroyed");
 		stop();
-		pebble.disconnect();
-		pebble = null;
+		wearable.disconnect();
+		wearable = null;
 	}
-	
-	private abstract class Callbacks implements WearableCallbacks{
-		
-		public void onDeviceDisconnected(){
-			Log.d("ScreamService", "disconnected");
-			stop();
-		}
-		
-		public void onTimeout(){
-			Log.d("ScreamService", "timeout");
-			stop();
-		}
-		
-		public void onShakeReceived(int shake){
-			Log.d("ScreamService", "received");
-			update(shake);
-		}
+
+	@Override
+	public void onRecieve(Integer data) {
+		Log.d("ScreamService", "received");
+		update(data);
+	}
+
+	@Override
+	public void onTimeout() {
+		Log.d("ScreamService", "timeout");
+		stop();
+	}
+
+	@Override
+	public void onDisconnected() {
+		Log.d("ScreamService", "disconnected");
+		stop();
 	}
 	
 	private void update(int shake){
