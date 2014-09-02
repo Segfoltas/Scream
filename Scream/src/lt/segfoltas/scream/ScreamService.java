@@ -1,29 +1,37 @@
 package lt.segfoltas.scream;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 import com.getpebble.android.kit.util.PebbleDictionary;
 
+import lt.segfoltas.wearableinterface.WearableCallbacks.ConnectedListener;
 import lt.segfoltas.wearableinterface.WearableCallbacks.DataReceivedListener;
 import lt.segfoltas.wearableinterface.WearableCallbacks.DisconnectedListener;
 import lt.segfoltas.wearableinterface.WearableCallbacks.TimeoutListener;
 import lt.segfoltas.wearableinterface.PebbleProcessor;
 import lt.segfoltas.wearableinterface.WearableIds;
 import lt.segfoltas.wearableinterface.WearableInterface;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-public class ScreamService extends Service implements DisconnectedListener, TimeoutListener, DataReceivedListener<Integer>{
+public class ScreamService extends Service implements DisconnectedListener, TimeoutListener, DataReceivedListener<Integer>, ConnectedListener{
 	
 	public static final String INTENT = "lt.segfoltas.scream.indicatorintent";
 	public static final String VALUE = "screaming";
@@ -37,6 +45,7 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 	private int maxVolume;
 	private AudioManager manager;
 	private WearableInterface<Integer> wearable;
+	private Handler handler = new Handler();
 
 	@Override
 	public void onCreate() {
@@ -70,6 +79,9 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 			}
 		});
 		wearable.connect();
+		
+		handler.removeCallbacks(connectionTimer);
+		handler.postDelayed(connectionTimer, 3000);
 	}
 	
 	private Notification getNotification(){
@@ -107,6 +119,48 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 	public void onDisconnected() {
 		Log.d("ScreamService", "disconnected");
 		stop();
+	}
+	
+	@Override
+	public void onConnected() {
+		handler.removeCallbacks(connectionTimer);
+	}
+	
+	private Runnable connectionTimer = new Runnable() {
+		
+		@Override
+		public void run() {
+			if(!installPebbleApp())
+				showNoPebbleDialog();
+		}
+	};
+	
+	private boolean installPebbleApp(){
+		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("pebble://appstore/7f84367c-1f86-4491-a6bb-cdedbb55baa1"));
+		intent.setFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK );
+
+		PackageManager packageManager = getPackageManager();
+		List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
+		
+		if(activities.size() == 0)
+			return false;
+		
+		startActivity(intent);
+		return true;
+	}
+	
+	private void showNoPebbleDialog(){
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("No Pebble");
+		builder.setMessage("No Pebble app detected on your device");
+		builder.setCancelable(true);
+		builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+			}
+		});
+		builder.create().show();
 	}
 	
 	private void update(int shake){
