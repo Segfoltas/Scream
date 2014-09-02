@@ -1,0 +1,3 @@
+[submodule "CrossWearableInterface"]
+    path = CrossWearableInterface
+    url = https://github.com/DariusL/CrossWearableInterface.git
