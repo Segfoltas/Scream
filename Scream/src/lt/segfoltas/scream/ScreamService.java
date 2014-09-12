@@ -15,6 +15,7 @@ import lt.segfoltas.wearableinterface.WearableIds;
 import lt.segfoltas.wearableinterface.WearableInterface;
 import android.app.AlertDialog;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -130,37 +131,24 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 		
 		@Override
 		public void run() {
-			if(!installPebbleApp())
-				showNoPebbleNotif();
+			showNoPebbleNotif();
 		}
 	};
 	
-	private boolean installPebbleApp(){
-		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("pebble://appstore/7f84367c-1f86-4491-a6bb-cdedbb55baa1"));
-		intent.setFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK );
-
-		PackageManager packageManager = getPackageManager();
-		List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
-		
-		if(activities.size() == 0)
-			return false;
-		
-		startActivity(intent);
-		return true;
-	}
-	
 	private void showNoPebbleNotif(){
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("No Pebble");
-		builder.setMessage("No Pebble app detected on your device");
-		builder.setCancelable(true);
-		builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-			}
-		});
-		builder.create().show();
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+		
+		Intent intent = new Intent(this, InstallActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		PendingIntent pi = PendingIntent.getActivity(this, 0, intent, 0);
+		
+		builder.setContentTitle("No Device");
+		builder.setContentText("No wearable device found, click for solutions");
+		builder.setSmallIcon(android.R.drawable.ic_delete);
+		builder.setContentIntent(pi);
+		
+		NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+		manager.notify(0, builder.build());
 	}
 	
 	private void update(int shake){
