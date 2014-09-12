@@ -131,7 +131,7 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 		@Override
 		public void run() {
 			if(!installPebbleApp())
-				showNoPebbleDialog();
+				showNoPebbleNotif();
 		}
 	};
 	
@@ -149,7 +149,7 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 		return true;
 	}
 	
-	private void showNoPebbleDialog(){
+	private void showNoPebbleNotif(){
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("No Pebble");
 		builder.setMessage("No Pebble app detected on your device");

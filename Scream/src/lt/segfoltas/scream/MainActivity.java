@@ -1,5 +1,7 @@
 package lt.segfoltas.scream;
 
+import com.bugsense.trace.BugSenseHandler;
+
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -23,6 +25,7 @@ public class MainActivity extends Activity{
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		BugSenseHandler.initAndStartSession(this, "047aa837");
 		setContentView(R.layout.activity_main);
 		pebbleScreen = (ImageView) findViewById(R.id.pebble_screen);
 		ToggleButton button = (ToggleButton) findViewById(R.id.service_switch);
