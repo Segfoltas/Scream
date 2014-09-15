@@ -30,9 +30,8 @@ public class MainActivity extends Activity{
 		pebbleScreen = (ImageView) findViewById(R.id.pebble_screen);
 		ToggleButton button = (ToggleButton) findViewById(R.id.service_switch);
 		button.setOnCheckedChangeListener(listener);
-		button.setChecked(isServiceRunning(ScreamService.class));
 		registerReceiver(receiver, new IntentFilter(ScreamService.INTENT));
-		startService(new Intent(this, ScreamService.class));
+		button.setChecked(isServiceRunning(ScreamService.class));
 	}
 	
 	private BroadcastReceiver receiver = new BroadcastReceiver() {

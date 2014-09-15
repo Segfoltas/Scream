@@ -1,36 +1,30 @@
 package lt.segfoltas.scream;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 
-import com.getpebble.android.kit.util.PebbleDictionary;
-
+import lt.segfoltas.wearableinterface.PebbleProcessor;
 import lt.segfoltas.wearableinterface.WearableCallbacks.ConnectedListener;
 import lt.segfoltas.wearableinterface.WearableCallbacks.DataReceivedListener;
 import lt.segfoltas.wearableinterface.WearableCallbacks.DisconnectedListener;
 import lt.segfoltas.wearableinterface.WearableCallbacks.TimeoutListener;
-import lt.segfoltas.wearableinterface.PebbleProcessor;
 import lt.segfoltas.wearableinterface.WearableIds;
 import lt.segfoltas.wearableinterface.WearableInterface;
-import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+
+import com.getpebble.android.kit.util.PebbleDictionary;
 
 public class ScreamService extends Service implements DisconnectedListener, TimeoutListener, DataReceivedListener<Integer>, ConnectedListener{
 	
@@ -40,7 +34,7 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 	private static final int THRESHHOLD = 3000;
 	private static final WearableIds IDS = new WearableIds(UUID.fromString("7f84367c-1f86-4491-a6bb-cdedbb55baa1"));
 	
-	private int silenceCount = 0;
+	private int silenceCount = 2;
 	private MediaPlayer player;
 	private int userVolume;
 	private int maxVolume;
@@ -72,6 +66,7 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 		wearable.setTimeoutListener(this, 2000);
 		wearable.setDisconnectedListener(this);
 		wearable.setReceivedListener(this);
+		wearable.setConnectedListener(this);
 		wearable.setProcessor(new PebbleProcessor<Integer>() {
 			
 			@Override
@@ -106,7 +101,7 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 
 	@Override
 	public void onRecieve(Integer data) {
-		Log.d("ScreamService", "received");
+		Log.d("ScreamService", "received " + data.toString());
 		update(data);
 	}
 
@@ -124,6 +119,7 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 	
 	@Override
 	public void onConnected() {
+		Log.d("ScreamService", "connected");
 		handler.removeCallbacks(connectionTimer);
 	}
 	
@@ -153,11 +149,11 @@ public class ScreamService extends Service implements DisconnectedListener, Time
 	
 	private void update(int shake){
 		Log.d("ScreamService", "updated");
-		boolean scream;
+		boolean scream = false;
+		
 		if(shake > THRESHHOLD){
 			silenceCount = 0;
 			scream = true;
-			
 		}else{
 			silenceCount++;
 			scream = silenceCount < 2;

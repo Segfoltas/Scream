@@ -19,14 +19,12 @@ public class InstallActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.activity_settings);
-		pebbleIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("pebble://appstore/7f84367c-1f86-4491-a6bb-cdedbb55baa1"));
+		pebbleIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("pebble://appstore/5405e9c42c4f7fb698000022"));
 		pebbleIntent.setFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK );
 		
 		View pebbleButton = findViewById(R.id.install_pebble);
-		if(hasPebble())
-			pebbleButton.setOnClickListener(onPebbleClick);
-		else
-			pebbleButton.setVisibility(View.GONE);
+		pebbleButton.setOnClickListener(onPebbleClick);
+		pebbleButton.setEnabled(hasPebble());
 	}
 	
 	private View.OnClickListener onPebbleClick = new View.OnClickListener() {
